@@ -8,6 +8,7 @@ import Spotify.SearchResult as SearchResult exposing (SearchResult)
 import Spotify.Album as Album
 import Spotify.Artist as Artist
 import Class exposing (..)
+import Debug
 
 
 main =
@@ -55,7 +56,7 @@ update msg model =
           Track.search name
         else
           Cmd.none
-      in ({ model | searchInput = name }, cmd)
+      in ({ model | searchInput = name }, Cmd.map TrackMsg cmd)
 
     Select track ->
       ({ model | currentTrack = track }, Cmd.none)
@@ -66,13 +67,9 @@ update msg model =
     Stop ->
       ({ model | playing = False }, Cmd.none)
 
-    TrackMsg track ->
-      case Track.get track of
-        Just trackList ->
-          ({ model | trackList = trackList }, Cmd.none)
-        Nothing ->
-          (model, Cmd.none)
-
+    TrackMsg tracks ->
+      ({ model | trackList = (Track.get tracks) }, Cmd.none)
+      
     _ ->
       Debug.crash "Went through"
 
@@ -83,16 +80,16 @@ view : Model -> Html Msg
 view model =
   div []
     [ viewSearchBar
-    , viewAlbumList model.albumList
+    , viewTrackList model.trackList
     ]
 
-viewAlbumList : List Album.Simple -> Html Msg
-viewAlbumList albums =
+viewTrackList : List Track -> Html Msg
+viewTrackList albums =
   ul [Class.albumList]
-    (List.map viewAlbum albums)
+    (List.map viewTrack albums)
 
-viewAlbum : Album.Simple -> Html Msg
-viewAlbum album =
+viewTrack : Track -> Html Msg
+viewTrack album =
   li [Class.albumListItem]
     [text album.name]
 
