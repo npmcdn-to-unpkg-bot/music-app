@@ -2,13 +2,9 @@ module Spotify.Album exposing (..)
 
 import Date exposing (Date)
 import Json.Decode as Json exposing ((:=))
-import Http
-import Task
-import Maybe exposing (Maybe(..))
 import Spotify.Track as Track exposing (Track)
 import Spotify.Image as Image exposing (Image)
 import Spotify.Artist as Artist
-import Spotify.Api exposing (baseUrl)
 
 
 type alias Simple =
@@ -28,10 +24,6 @@ type alias Full =
   , popularity : Int
   }
 
-type Msg
-  = Success (List Simple)
-  | Error Http.Error
-
 noneFull : Full
 noneFull =
   Full "" "" [] [] [] [] (Date.fromTime 0) 0
@@ -39,19 +31,6 @@ noneFull =
 noneSimple : Simple
 noneSimple =
   Simple "" "" []
-
-get : Msg -> Maybe (List Simple)
-get msg =
-  case msg of
-    Success albums -> Just albums
-    Error err -> Nothing
-
-search : String -> Cmd Msg
-search string =
-  let
-    url = baseUrl ++ "/search?type=album&q=" ++ Http.uriEncode string
-  in
-    Task.perform Error Success (Http.get (Json.list decodeSimple) url)
 
 decodeSimple : Json.Decoder Simple
 decodeSimple =

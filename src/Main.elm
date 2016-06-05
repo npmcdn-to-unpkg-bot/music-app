@@ -23,12 +23,16 @@ main =
 -- MODEL
 
 type alias Model =
-  { albumList : List Album.Simple
-  , trackList : List Track
-  , searchResult : SearchResult
+  { searchResult : SearchResult
   , currentTrack : Track
   , searchInput : String
   , playing : Bool
+  }
+
+type alias SearchResult =
+  { tracks : List Track
+  , albums : List Album.Simple
+  , artists : List Artist.Simple
   }
 
 init : (Model, Cmd Msg)
@@ -43,20 +47,13 @@ type Msg
   | Select Track
   | Play
   | Stop
-  | TrackMsg Track.Msg
-  | AlbumMsg Album.Msg
-  | ArtistMsg Artist.Msg
+  | ApiMsg Api.Msg
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
     Search name ->
-      let cmd =
-        if String.length name > 1 then
-          Track.search name
-        else
-          Cmd.none
-      in ({ model | searchInput = name }, Cmd.map TrackMsg cmd)
+      ({ model | searchInput = name }, Cmd.map ApiResponse (Api.search name))
 
     Select track ->
       ({ model | currentTrack = track }, Cmd.none)
@@ -67,8 +64,8 @@ update msg model =
     Stop ->
       ({ model | playing = False }, Cmd.none)
 
-    TrackMsg tracks ->
-      ({ model | trackList = (Track.get tracks) }, Cmd.none)
+    ApiResponse result ->
+      ({ model | searchResult = Api.get result }, Cmd.none)
       
     _ ->
       Debug.crash "Went through"
